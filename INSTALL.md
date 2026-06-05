@@ -202,15 +202,13 @@ Repo too big for a single goal. Use:
 - `scripts/run-chain.sh` for severity splits
 
 ### "/code-review not available" or "Understood — I'll wait..."
-`claude-goal-suite` no longer calls `/code-review` from v0.1.1. Phase 4
-spawns an explicit subagent. If you want to use `/code-review` outside
-of `claude-goal-suite` and it idles: the marketplace plugin
-`code-review @ claude-plugins-official` is probably installed and is
-blocking the bundled skill. Uninstall:
-```
-/plugin uninstall code-review@claude-plugins-official
-```
-After that, the bundled skill responds to `/code-review` again.
+This does not affect `claude-goal-suite`. From v0.1.1, Phase 4 spawns
+an explicit code-review subagent via the Task tool and never calls
+`/code-review` as a slash command — so the marketplace plugin
+`code-review @ claude-plugins-official` cannot block it. If you see
+the message above, you invoked `/code-review` outside of
+`claude-goal-suite`; that is a separate issue between the bundled
+skill and the marketplace plugin and does not change Phase 4 behaviour.
 
 ## Uninstall
 

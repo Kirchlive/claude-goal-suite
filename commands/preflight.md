@@ -75,21 +75,7 @@ If not active:
 mkdir -p .goal-suite
 ```
 
-### 8. Marketplace plugin `code-review` NOT installed (recommended)
-Check whether the marketplace plugin is active:
-```
-/plugin list | grep code-review
-```
-If present:
-```
-/plugin uninstall code-review@claude-plugins-official
-```
-Reason: The plugin blocks the `/code-review` name and idles without
-PR context. claude-goal-suite uses an explicit subagent spawn instead
-— no conflict — but the plugin adds no value for local working-tree
-reviews.
-
-### 9. Stack detection prerequisites
+### 8. Stack detection prerequisites
 At least ONE marker file must exist:
 ```bash
 ls package.json Cargo.toml pyproject.toml go.mod pom.xml \
@@ -97,7 +83,7 @@ ls package.json Cargo.toml pyproject.toml go.mod pom.xml \
 ```
 If nothing: start explicitly via the `stack=<id>` argument.
 
-### 10. Trust dialog accepted
+### 9. Trust dialog accepted
 `/goal` only runs in trusted workspaces. If not accepted:
 Claude Code will ask on the next tool call.
 

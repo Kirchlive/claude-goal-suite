@@ -61,28 +61,23 @@ structured plan to disk (survivable between sessions), and delivers a
 - **Superpowers** (`obra/superpowers-marketplace`) — for brainstorm/plan/TDD skills
 - **Claude-Full-Context-Agent** (`Kirchlive/Claude-Full-Context-Agent`) —
   for fork-subagent mode with full context inheritance
-- **NOT** the marketplace plugin `code-review @ claude-plugins-official`
-  — see note below
 - **Auto Mode** active (for unattended turns)
 - **Clean Git working tree** (rollback guarantee)
 
-### Note on the `code-review` marketplace plugin
+### How Phase 4 reviews work
 
-The official Anthropic plugin `code-review @ claude-plugins-official` is
-**made for GitHub PR reviews**, not for local working-tree reviews.
-When installed, it blocks the `/code-review` name and idles
-without an open PR — the bundled skill cannot get through.
+Phase 4 (verification) does **not** call `/code-review` as a slash
+command. Instead, it spawns an explicit code-review subagent via the
+Task tool with a fixed prompt — review the diff since `BASELINE.md`
+for bug patterns, test-coverage regression, anti-patterns, secrets,
+and CLAUDE.md compliance. Output lands in `.goal-suite/code-review.md`.
 
-`claude-goal-suite` avoids the problem entirely: Phase 4 spawns an
-explicit code-review subagent via the Task tool instead of calling
-`/code-review`. This makes the workflow independent of what is
-registered under `/code-review`.
-
-Recommendation: If you do not need the marketplace plugin for CI/PR
-reviews, uninstall it:
-```
-/plugin uninstall code-review@claude-plugins-official
-```
+This makes the workflow safe to use alongside the official
+`code-review @ claude-plugins-official` marketplace plugin: there is no
+name collision, no idle-on-non-PR behaviour, and no dependency on
+which command happens to be registered under `/code-review` in your
+session. Keep the marketplace plugin installed for GitHub PR reviews
+if you use it — `claude-goal-suite` ignores it.
 
 ## Install
 

@@ -60,11 +60,9 @@ context (skip logic for non-PR calls). On a name collision,
 
 For this reason, `claude-goal-suite` Phase 4 does NOT use the slash
 command but spawns an explicit code-review subagent via the Task tool.
-This makes the behavior independent of the user's plugin configuration.
-
-Recommendation: If both variants of `/code-review` are installed and
-you do not work in a PR workflow, uninstall the marketplace plugin:
-`/plugin uninstall code-review@claude-plugins-official`.
+This makes the behavior independent of the user's plugin configuration
+— the marketplace plugin can stay installed for GitHub PR reviews
+without affecting Phase 4.
 
 ## Working directory
 
@@ -150,9 +148,8 @@ If the goal run is aborted by token exhaustion, turn limit, or crash:
   marketplace plugin `code-review @ claude-plugins-official` is
   installed in parallel.
 - **`code-review @ claude-plugins-official` (optional)**: not used by
-  this skill. Keep it only if you need it for a separate GitHub-PR
-  review workflow — otherwise uninstall is recommended so the bundled
-  skill is not overridden.
+  this skill. Safe to keep installed alongside `claude-goal-suite` —
+  Phase 4 spawns its own subagent and never goes through `/code-review`.
 
 ## Token-budget notes
 
