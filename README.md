@@ -95,7 +95,6 @@ if you use it — `claude-goal-suite` ignores it.
 /plugin install superpowers@superpowers-marketplace
 /plugin marketplace add Kirchlive/Claude-Full-Context-Agent
 /plugin install Claude-Full-Context-Agent@Claude-Full-Context-Agent
-/reload-plugins
 ```
 
 Then enable fork-subagent mode and Auto Mode:
@@ -103,9 +102,8 @@ Then enable fork-subagent mode and Auto Mode:
 ```
 /Claude-Full-Context-Agent:doctor
 /auto-mode on
+/reload-plugins
 ```
-
-Restart Claude Code once (env vars are read at startup).
 
 **Verify:**
 
