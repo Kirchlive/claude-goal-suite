@@ -1,0 +1,71 @@
+Run a complete repo-enhancement cycle: bugs, optimization, performance,
+cleanup. Flow is strictly phased.
+
+PHASE 1 - DISCOVERY (output: .goal-suite/SPEC.md):
+1. Stack detection: scan the root for markers (package.json, Cargo.toml,
+   pyproject.toml, go.mod, pom.xml, build.gradle*, Gemfile, composer.json,
+   *.csproj, mix.exs, Makefile). Consult references/stacks.md in the skill.
+   Write stack + BUILD/TEST/LINT/FORMAT commands to .goal-suite/STACK.md.
+   If .goal-suite/stack-override.txt exists: its value takes precedence.
+2. Baseline: run BUILD, TEST, LINT, FORMAT. Record exit codes,
+   pass/fail counts, warning counts in .goal-suite/BASELINE.md. Output must
+   land visibly in the transcript so the evaluator can read it.
+3. Issue inventory: grep -rn "TODO\|FIXME\|HACK\|XXX\|DEPRECATED" over
+   the source tree (excluding node_modules/target/dist/.venv/vendor/build).
+   If the gh CLI is available: gh issue list --state open --limit 50.
+4. Dead-code scan, stack-appropriate (knip / cargo-udeps / ruff F401 /
+   staticcheck / phpstan unused / etc.). Tool missing: TODO in SPEC.
+5. Perf hotspots: grep for anti-patterns (sync-in-async, await-in-loop,
+   N+1, panic/unwrap in Rust, blocking calls in event-loop contexts).
+6. Write .goal-suite/SPEC.md with sections: Stack, Commands, Baseline,
+   Bugs, Lint, Dead-Code, Performance, Deprecated. Each finding with
+   file:line and severity (CRITICAL/HIGH/MEDIUM/LOW).
+
+PHASE 2 - PLANNING (output: .goal-suite/PLAN.md):
+7. From SPEC.md, generate a numbered task list, 2-5 minutes per task.
+   Order: CRITICAL bugs > HIGH bugs > Lint > Dead-Code > MEDIUM
+   Performance > Format. Every task has: ID, description, file(s),
+   local verify command, [ ] checkbox.
+
+PHASE 3 - EXECUTION (iterative per task):
+8. Read the next open task from PLAN.md.
+9. Implement the change.
+10. Run the local verify command; output must land in the transcript.
+11. On pass: mark [x] in PLAN.md AND emit the [x]/[ ] count in the
+    output (e.g. via grep -c). On fail: up to 3 correction attempts,
+    then [?] with justification. Continue with the next task.
+12. Repeat until all tasks are [x] or [?].
+
+PHASE 4 - VERIFICATION (inline):
+13. Spawn a code-review subagent (Task tool, fresh context, isolation:
+    worktree if available). Task: review the diff since BASELINE.md for
+    (a) CLAUDE.md compliance if the file is present,
+    (b) bug patterns (off-by-one, null-deref, race, panic/unwrap),
+    (c) test coverage regression vs. baseline, (d) anti-patterns
+    (sync-in-async, await-in-loop, blocking-in-event-loop), (e) secrets
+    or hard-coded URLs. Output to .goal-suite/code-review.md with
+    severity (CRITICAL/HIGH/MEDIUM/LOW) and file:line.
+14. Address CRITICAL via mini-tasks in PLAN.md; non-CRITICAL as
+    [?] follow-up entries.
+15. Final run: BUILD, TEST, LINT, FORMAT. Output to the transcript.
+
+GOAL IS COMPLETE WHEN ALL OF:
+- .goal-suite/SPEC.md and .goal-suite/PLAN.md exist and are populated
+- All PLAN tasks are [x] or [?] (with justification)
+- BUILD command exits 0
+- TEST command exits 0 AND test-pass-count >= baseline
+- LINT command exits 0 OR warning-count <= baseline
+- FORMAT check exits 0
+- .goal-suite/code-review.md shows no open CRITICAL findings
+
+SCOPE CONSTRAINTS (HARD, no exceptions):
+- Do not delete, skip, or .skip/.only tests
+- test-pass-count must not fall below baseline
+- No suppressions (eslint-disable, # noqa, #[allow()], @SuppressWarnings)
+  without an inline comment with justification
+- No changes to: .env*, .github/, ci/, deploy/, infra/, terraform/,
+  Dockerfile*, migrations/, package.json/Cargo.toml/etc. major bumps
+- Pure-refactor tasks: business logic unchanged
+- On ambiguity: mark as [?] in PLAN.md with the question, do NOT guess
+
+STOP after 40 turns with a report of the remaining work.

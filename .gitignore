@@ -1,0 +1,14 @@
+# Plugin-eigene Build/Test Artefakte
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+
+# Test-Outputs
+.goal-suite/

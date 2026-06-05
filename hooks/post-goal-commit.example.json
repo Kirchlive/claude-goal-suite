@@ -1,0 +1,16 @@
+{
+  "_comment": "Optional Stop hook for auto-commits after every goal-suite run. Enable by renaming to hooks.json or merging into ~/.claude/settings.json. Uses CLAUDE_PROJECT_DIR so it only fires in the right repo.",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && if [ -f .goal-suite/PLAN.md ]; then if [ -n \"$(git status --porcelain 2>/dev/null)\" ]; then git add -A && git commit -m \"goal-suite: goal checkpoint $(date -u +%Y-%m-%dT%H:%M:%SZ)\" --no-verify || true; fi; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

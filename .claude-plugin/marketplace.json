@@ -1,0 +1,11 @@
+{
+  "name": "claude-goal-suite-marketplace",
+  "version": "0.1.1",
+  "plugins": [
+    {
+      "name": "claude-goal-suite",
+      "source": ".",
+      "description": "Self-contained Claude-Goal-Suite via /goal with stack auto-detection."
+    }
+  ]
+}
