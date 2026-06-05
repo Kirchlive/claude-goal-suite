@@ -97,12 +97,13 @@ if you use it — `claude-goal-suite` ignores it.
 /plugin install Claude-Full-Context-Agent@Claude-Full-Context-Agent
 ```
 
-Then enable fork-subagent mode and Auto Mode:
+```
+/reload-plugins
+```
 
 ```
 /Claude-Full-Context-Agent:doctor
 /auto-mode on
-/reload-plugins
 ```
 
 **Verify:**
