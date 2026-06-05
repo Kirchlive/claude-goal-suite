@@ -97,14 +97,21 @@ if you use it — `claude-goal-suite` ignores it.
 /plugin install Claude-Full-Context-Agent@Claude-Full-Context-Agent
 ```
 
+**Activate Plugins:**
+
 ```
 /reload-plugins
 ```
+
+**Setup:**
+
 
 ```
 /Claude-Full-Context-Agent:doctor
 /auto-mode on
 ```
+
+**Restart Claude Code**
 
 **Verify:**
 
