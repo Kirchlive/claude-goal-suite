@@ -5,25 +5,39 @@ Bug fixing, optimization, performance, cleanup — stack-agnostic via
 auto-detection (Node/Rust/Python/Go/Java/.NET/Ruby/PHP/Elixir/Swift).
 
 ```
-┌─ Phase 1: Discovery ─────────────┐  Stack detection + audit
-│  → .goal-suite/SPEC.md              │  + issue inventory + baseline
-└──────────────────────────────────┘
-                  ▼
-┌─ Phase 2: Planning ──────────────┐  Task list 2-5 min/task
-│  → .goal-suite/PLAN.md              │  sorted by severity
-└──────────────────────────────────┘
-                  ▼
-┌─ Phase 3: Execution (autonomous) ┐  iterative per task
-│  /goal with Auto Mode            │  verify + checkbox
-└──────────────────────────────────┘
-                  ▼
-┌─ Phase 4: Verification (inline) ─┐  /code-review
-│  → .goal-suite/code-review.md       │  + final build/test/lint
-└──────────────────────────────────┘
-                  ▼
-┌─ Phase 5: Commit & Chain (ext.) ─┐  git commit
-│  scripts/run-chain.sh            │  + next severity
-└──────────────────────────────────┘
+┌──────────────────────────────────────────────┐
+│  Phase 1 · Discovery                         │
+│  → .goal-suite/SPEC.md                       │
+│  Stack detection + audit + baseline          │
+└──────────────────────────────────────────────┘
+                       │
+                       ▼
+┌──────────────────────────────────────────────┐
+│  Phase 2 · Planning                          │
+│  → .goal-suite/PLAN.md                       │
+│  Task list (2–5 min/task) by severity        │
+└──────────────────────────────────────────────┘
+                       │
+                       ▼
+┌──────────────────────────────────────────────┐
+│  Phase 3 · Execution  (autonomous)           │
+│  /goal with Auto Mode                        │
+│  Iterative per task · verify + checkbox      │
+└──────────────────────────────────────────────┘
+                       │
+                       ▼
+┌──────────────────────────────────────────────┐
+│  Phase 4 · Verification  (inline)            │
+│  → .goal-suite/code-review.md                │
+│  Subagent review + final build / test / lint │
+└──────────────────────────────────────────────┘
+                       │
+                       ▼
+┌──────────────────────────────────────────────┐
+│  Phase 5 · Commit & Chain  (external)        │
+│  scripts/run-chain.sh                        │
+│  git commit + next severity                  │
+└──────────────────────────────────────────────┘
 ```
 
 ## Why this skill?
@@ -70,27 +84,50 @@ reviews, uninstall it:
 /plugin uninstall code-review@claude-plugins-official
 ```
 
-## Installation (one-time)
+## Install
 
-```bash
-# 1. Clone or extract the repo
-cd ~/dev/tools
-unzip claude-goal-suite.zip
-cd claude-goal-suite
+**Prerequisites:** Claude Code v2.1.139+ (`claude --version`). If `/goal`
+is not recognized, update first: `npm update -g @anthropic-ai/claude-code`.
 
-# 2. Run bootstrap (plugin install instructions + .gitignore setup)
-bash scripts/bootstrap.sh         # Linux/macOS/WSL
-# or
-pwsh scripts/bootstrap.ps1        # Windows PowerShell 7+
+**Install the plugin:**
 
-# 3. Work through the printed manual steps in Claude Code:
-#    - 3 plugin installations
-#    - 2x restart Claude Code
-#    - /Claude-Full-Context-Agent:doctor
-#    - /auto-mode on
+```
+/plugin marketplace add Kirchlive/claude-goal-suite
+/plugin install claude-goal-suite@claude-goal-suite-marketplace
 ```
 
-Detailed step-by-step guide in [`INSTALL.md`](./INSTALL.md).
+**Install dependencies:**
+
+```
+/plugin marketplace add obra/superpowers-marketplace
+/plugin install superpowers@superpowers-marketplace
+/plugin marketplace add Kirchlive/Claude-Full-Context-Agent
+/plugin install Claude-Full-Context-Agent@Claude-Full-Context-Agent
+```
+
+Restart Claude Code, then enable fork-subagent mode and Auto Mode:
+
+```
+/Claude-Full-Context-Agent:doctor
+/auto-mode on
+```
+
+Restart Claude Code one more time (env vars are read at startup).
+
+**Verify:**
+
+```
+/goal-suite:preflight
+```
+
+All checks should show `[ OK ]`. The preflight validates Claude Code
+version, git state, plugin installation, fork-subagent mode, and stack
+detection.
+
+> **Per-repo `.gitignore`:** Before the first run in a repo, add
+> `.claude/worktrees/` and `.goal-suite/` to its `.gitignore` (or run
+> `bash scripts/bootstrap.sh` once — it does this plus other sanity
+> checks). Detailed step-by-step guide in [`INSTALL.md`](./INSTALL.md).
 
 ## Usage
 
