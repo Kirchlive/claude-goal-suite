@@ -10,7 +10,7 @@ of which ~3 minutes is wait time (plugin installs + 2x restart).
 claude --version
 
 # If too old:
-npm update -g @anthropic-ai/claude-code
+curl -fsSL https://claude.ai/install.sh | bash
 ```
 
 ## Step 1: Extract claude-goal-suite
@@ -174,7 +174,7 @@ git commit -m "goal-suite: first repo cleanup pass"
 ## Troubleshooting
 
 ### "/goal: unknown command"
-Claude Code version too old. `npm update -g @anthropic-ai/claude-code`
+Claude Code version too old. `curl -fsSL https://claude.ai/install.sh | bash`
 and check with `claude --version` whether it is >= 2.1.139.
 
 ### "Plugin install failed"

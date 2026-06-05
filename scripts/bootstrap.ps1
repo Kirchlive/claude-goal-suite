@@ -14,7 +14,7 @@ Log "Checking Claude Code version..."
 $claudeCmd = Get-Command claude -ErrorAction SilentlyContinue
 if (-not $claudeCmd) {
     ErrMsg "claude CLI not found. Install via:"
-    Write-Host "  npm install -g @anthropic-ai/claude-code"
+    Write-Host "  curl -fsSL https://claude.ai/install.sh | bash"
     exit 1
 }
 
@@ -27,7 +27,7 @@ if ($versionMatch.Success) {
         Ok "Claude Code $current (>= $required)"
     } else {
         ErrMsg "Claude Code $current is too old (>= $required required)"
-        Write-Host "  Update: npm update -g @anthropic-ai/claude-code"
+        Write-Host "  Update: curl -fsSL https://claude.ai/install.sh | bash"
         exit 1
     }
 } else {

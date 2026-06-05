@@ -35,7 +35,7 @@ err()  { echo -e "${RED}[err ]${NC} $*"; }
 log "Checking Claude Code version..."
 if ! command -v claude >/dev/null 2>&1; then
   err "claude CLI not found. Install via:"
-  echo "  npm install -g @anthropic-ai/claude-code"
+  echo "  curl -fsSL https://claude.ai/install.sh | bash"
   exit 1
 fi
 
@@ -48,7 +48,7 @@ else
     ok "Claude Code $CLAUDE_VERSION (>= $REQUIRED)"
   else
     err "Claude Code $CLAUDE_VERSION is too old (>= $REQUIRED required)"
-    echo "  Update: npm update -g @anthropic-ai/claude-code"
+    echo "  Update: curl -fsSL https://claude.ai/install.sh | bash"
     exit 1
   fi
 fi

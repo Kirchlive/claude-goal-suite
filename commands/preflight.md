@@ -15,7 +15,7 @@ claude --version
 ```
 Must be >= 2.1.139. If not:
 ```
-npm update -g @anthropic-ai/claude-code
+curl -fsSL https://claude.ai/install.sh | bash
 ```
 
 ### 2. Git working tree clean

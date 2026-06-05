@@ -82,7 +82,7 @@ if you use it — `claude-goal-suite` ignores it.
 ## Install
 
 **Prerequisites:** Claude Code v2.1.139+ (`claude --version`). If `/goal`
-is not recognized, update first: `npm update -g @anthropic-ai/claude-code`.
+is not recognized, update first: `curl -fsSL https://claude.ai/install.sh | bash`.
 
 **Install the plugin:**
 
