@@ -111,7 +111,7 @@ if you use it — `claude-goal-suite` ignores it.
 /auto-mode on
 ```
 
-**Restart Claude Code**
+Restart Claude Code
 
 **Verify:**
 
