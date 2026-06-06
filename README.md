@@ -44,8 +44,8 @@ a goal block that stays under the 4000-character hard limit.
 
 `/goal-suite` default - without description: Full repository 
 enhancement cycle: bug-fix, optimization, performance improvements, 
-and code cleanup. The process is strictly structured in phases based 
-on priority.
+and code cleanup. The process based on priority and strictly 
+structured in phases.
 
 
 ## Actor model — at a glance
