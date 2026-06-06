@@ -42,6 +42,12 @@ automatically, generates the matching build/test/lint commands, writes
 a structured plan to disk (survivable between sessions), and delivers
 a goal block that stays under the 4000-character hard limit.
 
+`/goal-suite` default - without description: Full repository 
+enhancement cycle: bug-fix, optimization, performance improvements, 
+and code cleanup. The process is strictly structured in phases based 
+on priority.
+
+
 ## Actor model — at a glance
 
 Phases are split by *what kind of work* they do, not just by ordering:
