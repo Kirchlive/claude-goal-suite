@@ -42,7 +42,7 @@ automatically, generates the matching build/test/lint commands, writes
 a structured plan to disk (survivable between sessions), and delivers
 a goal block that stays under the 4000-character hard limit.
 
-`/goal-suite` without description: Full repository enhancement cycle: 
+`/goal-suite` without description: Full autonomous enhancement cycle - 
 bug-fix, optimization, performance improvements, and code cleanup. 
 The process based on priority and strictly structured in phases.
 
