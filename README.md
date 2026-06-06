@@ -86,12 +86,6 @@ deliberately not used here: it skips without an open PR and needs
 `gh`. It belongs in the real PR stage *after* Phase 6, where
 confidence scoring and git-blame history apply.
 
-> ⚠️ Verify before production use that a bare `/code-review` with the
-> plugin installed still resolves to the native command in your CC
-> version (namespacing). If shadowed: either drop the plugin from
-> the cleanup setup or fall back to the bespoke review subagent that
-> Phase 5 also supports.
-
 `verification-before-completion`'s Iron Law applies as the
 Completion Gate: no pass-claim without the verification command's
 fresh output — including a `grep -c -iE 'CRITICAL'
