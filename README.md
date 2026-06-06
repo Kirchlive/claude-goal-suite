@@ -1,4 +1,4 @@
-# Claude Goal Suite
+# Claude Code Goal Suite
 
 **Self-contained full enhancement cycle via native Claude Code command `/goal`.**
 Bug fixing, optimization, performance, cleanup — stack-agnostic via auto-detection 
