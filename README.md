@@ -46,19 +46,6 @@ a goal block that stays under the 4000-character hard limit.
 bug-fix, optimization, performance improvements, and code cleanup. 
 The order of implementation is based on relevance.
 
-## Actor model — at a glance
-
-Phases are split by *what kind of work* they do, not just by ordering:
-
-- **Subagent (read-only)** — Phase 1 Discovery (`explore`), Phase 2
-  Research (external), Phase 5 Verification (two-stage review). Fresh
-  context, no edits, returns a report.
-- **Fork-Agent (write/execution)** — Phase 4 Execution via
-  `prefer-fork-agents` / `fan-out-fork-agents` in isolated worktrees.
-  Inherits the full parent context.
-- **External** — Phase 6 Commit / chain. Always outside the goal, so
-  the rollback guarantee (clean tree on entry) is preserved.
-
 ## Prerequisites
 
 - **Claude Code v2.1.151+** — `/goal` is available, *and* the native
@@ -73,27 +60,6 @@ Phases are split by *what kind of work* they do, not just by ordering:
 - **Clean Git working tree** (rollback guarantee)
 - **Web tools available to the agent** when Phase 2 (Research) is in
   scope — Research uses WebSearch/WebFetch; Phase 2 is skippable
-
-### How Phase 5 verification works
-
-Phase 5 reviews the local working-tree diff since `BASELINE.md` —
-**no PR is required**. The primary engine is the native `/code-review`
-(low/medium effort for high-confidence findings, **without `--fix`**
-so the human review before commit stays meaningful). The goal block
-adds gates the native command does not cover: test-pass count vs
-`BASELINE.md`, and secret / anti-pattern greps — both as explicit
-shell steps, so the tool-less evaluator sees the output in the
-transcript.
-
-The PR-oriented plugin `code-review @ claude-plugins-official` is
-deliberately not used here: it skips without an open PR and needs
-`gh`. It belongs in the real PR stage *after* Phase 6, where
-confidence scoring and git-blame history apply.
-
-`verification-before-completion`'s Iron Law applies as the
-Completion Gate: no pass-claim without the verification command's
-fresh output — including a `grep -c -iE 'CRITICAL'
-.goal-suite/code-review.md` echo whose result must be 0.
 
 ## Install
 
@@ -182,6 +148,40 @@ bash scripts/run-chain.sh   # critical → high → medium → low
 ├── PLAN.md          # tasks · - [ ] [SEVERITY] T-N: … (Phase 3)
 └── code-review.md   # two-stage review output (Phase 5)
 ```
+
+## Actor model — at a glance
+
+Phases are split by *what kind of work* they do, not just by ordering:
+
+- **Subagent (read-only)** — Phase 1 Discovery (`explore`), Phase 2
+  Research (external), Phase 5 Verification (two-stage review). Fresh
+  context, no edits, returns a report.
+- **Fork-Agent (write/execution)** — Phase 4 Execution via
+  `prefer-fork-agents` / `fan-out-fork-agents` in isolated worktrees.
+  Inherits the full parent context.
+- **External** — Phase 6 Commit / chain. Always outside the goal, so
+  the rollback guarantee (clean tree on entry) is preserved.
+
+## How Phase 5 verification works
+
+Phase 5 reviews the local working-tree diff since `BASELINE.md` —
+**no PR is required**. The primary engine is the native `/code-review`
+(low/medium effort for high-confidence findings, **without `--fix`**
+so the human review before commit stays meaningful). The goal block
+adds gates the native command does not cover: test-pass count vs
+`BASELINE.md`, and secret / anti-pattern greps — both as explicit
+shell steps, so the tool-less evaluator sees the output in the
+transcript.
+
+The PR-oriented plugin `code-review @ claude-plugins-official` is
+deliberately not used here: it skips without an open PR and needs
+`gh`. It belongs in the real PR stage *after* Phase 6, where
+confidence scoring and git-blame history apply.
+
+`verification-before-completion`'s Iron Law applies as the
+Completion Gate: no pass-claim without the verification command's
+fresh output — including a `grep -c -iE 'CRITICAL'
+.goal-suite/code-review.md` echo whose result must be 0.
 
 ## Caveats
 
