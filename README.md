@@ -29,8 +29,8 @@ auto-detection (Node/Rust/Python/Go/Java/.NET/Ruby/PHP/Elixir/Swift/Make).
 
 ## Why this skill?
 
-`/goal` is a powerful autonomous loop, but it has two structural
-limitations that sabotage "naive use":
+`/goal` is a powerful autonomous loop native in Claude Code, but it 
+has two structural limitations that sabotage "naive use":
 
 1. **The evaluator has no tools** — it only reads the transcript.
    Conditions must be written so that shell output demonstrates them.
