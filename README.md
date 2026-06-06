@@ -44,7 +44,7 @@ a goal block that stays under the 4000-character hard limit.
 
 `/goal-suite` without description: Full autonomous enhancement cycle - 
 bug-fix, optimization, performance improvements, and code cleanup. 
-The process based on priority and strictly structured in phases.
+The order of implementation is based on relevance.
 
 ## Actor model — at a glance
 
