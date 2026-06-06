@@ -1,5 +1,7 @@
 {
-  "_comment": "Optional Stop hook for auto-commits after every goal-suite run. Enable by renaming to hooks.json or merging into ~/.claude/settings.json. Uses CLAUDE_PROJECT_DIR so it only fires in the right repo.",
+  "_comment_1": "Optional Stop hook for auto-commits AFTER a goal-suite run completes. RISK: a Stop hook fires on EVERY turn end, not only at goal completion. Without a sentinel, this commits intermediate states mid-goal and destroys the 'clean working tree = rollback guarantee' that the project relies on. The hook below therefore only commits when (a) PLAN.md exists, (b) the sentinel file .goal-suite/.commit-on-stop is present, and (c) the tree is dirty. Drop the sentinel manually after Phase 5 if you want one auto-commit on the next Stop event; the hook removes it after committing so the next turn end is a no-op.",
+  "_comment_2": "WARNING: this hook uses --no-verify, which bypasses any pre-commit hooks (lint, format, secret scan, test). That is fine for a goal-suite checkpoint but is NOT safe as a general default. Review before enabling.",
+  "_enable_by": "Rename to hooks.json or merge into ~/.claude/settings.json. Uses CLAUDE_PROJECT_DIR so it only fires in the right repo.",
   "hooks": {
     "Stop": [
       {
@@ -7,7 +9,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$CLAUDE_PROJECT_DIR\" && if [ -f .goal-suite/PLAN.md ]; then if [ -n \"$(git status --porcelain 2>/dev/null)\" ]; then git add -A && git commit -m \"goal-suite: goal checkpoint $(date -u +%Y-%m-%dT%H:%M:%SZ)\" --no-verify || true; fi; fi"
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && if [ -f .goal-suite/PLAN.md ] && [ -f .goal-suite/.commit-on-stop ]; then if [ -n \"$(git status --porcelain 2>/dev/null)\" ]; then git add -A && git commit -m \"goal-suite: goal checkpoint $(date -u +%Y-%m-%dT%H:%M:%SZ)\" --no-verify && rm -f .goal-suite/.commit-on-stop || true; fi; fi"
           }
         ]
       }

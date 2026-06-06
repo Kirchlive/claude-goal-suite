@@ -1,7 +1,7 @@
 {
   "name": "claude-goal-suite",
-  "version": "0.1.1",
-  "description": "Self-contained Claude-Goal-Suite: bug fixing, optimization, performance, cleanup via /goal. Stack-agnostic (Node/Rust/Python/Go/Java/.NET/Ruby/PHP/Elixir). Phased plan Discovery -> Planning -> Execution -> Verification with built-in stack auto-detection.",
+  "version": "0.2.0",
+  "description": "Self-contained Claude-Goal-Suite: bug fixing, optimization, performance, cleanup via /goal. Stack-agnostic (Node/Rust/Python/Go/Java/.NET/Ruby/PHP/Elixir/Swift/Make). 6-phase flow Discovery -> Research -> Planning -> Execution -> Verification -> Commit with built-in stack auto-detection.",
   "author": {
     "name": "Kirchlive",
     "url": "https://github.com/Kirchlive"

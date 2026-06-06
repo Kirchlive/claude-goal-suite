@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # run-chain.sh — Sequential chaining of /goal runs by severity
 # ==================================================================
-# Solves the "Phase 5 not possible inside a goal" problem via external
-# iteration. Runs one pass per severity level with an intermediate
+# Solves the "Phase 6 commit must stay external" rule via deterministic
+# severity-chunked iteration. One /goal pass per severity, intermediate
 # git commit as audit trail.
 
 set -euo pipefail
@@ -26,9 +26,12 @@ for i in "${!CHUNKS[@]}"; do
   echo "================================================================"
   echo
 
-  # Pre-check whether any tasks of this severity are open
+  # Pre-check whether any OPEN tasks of this severity exist
+  # PLAN.md line format (writing-plans):
+  #   - [ ] [SEVERITY] T-N: desc (file:line) -- verify: <cmd>
   if [ -f .goal-suite/PLAN.md ]; then
-    OPEN=$(grep -ciE "severity:?.{0,5}$SEV" .goal-suite/PLAN.md 2>/dev/null | tail -1 || echo 0)
+    SEV_UPPER=$(printf '%s' "$SEV" | tr '[:lower:]' '[:upper:]')
+    OPEN=$(grep -cE "^- \[ \] \[$SEV_UPPER\]" .goal-suite/PLAN.md 2>/dev/null || echo 0)
     if [ "$OPEN" -eq 0 ]; then
       echo "No open $SEV tasks — skipping."
       continue

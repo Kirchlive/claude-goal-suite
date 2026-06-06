@@ -2,41 +2,28 @@
 
 **Self-contained repo-enhancement cycle for Claude Code via `/goal`.**
 Bug fixing, optimization, performance, cleanup — stack-agnostic via
-auto-detection (Node/Rust/Python/Go/Java/.NET/Ruby/PHP/Elixir/Swift).
+auto-detection (Node/Rust/Python/Go/Java/.NET/Ruby/PHP/Elixir/Swift/Make).
 
 ```
 ┌──────────────────────────────────────────────┐
-│  Phase 1 · Discovery                         │
-│  → .goal-suite/SPEC.md                       │
-│  Stack detection + audit + baseline          │
-└──────────────────────────────────────────────┘
-                       │
-                       ▼
-┌──────────────────────────────────────────────┐
-│  Phase 2 · Planning                          │
-│  → .goal-suite/PLAN.md                       │
-│  Task list (2–5 min/task) by severity        │
-└──────────────────────────────────────────────┘
-                       │
-                       ▼
-┌──────────────────────────────────────────────┐
-│  Phase 3 · Execution  (autonomous)           │
-│  /goal with Auto Mode                        │
-│  Iterative per task · verify + checkbox      │
-└──────────────────────────────────────────────┘
-                       │
-                       ▼
-┌──────────────────────────────────────────────┐
-│  Phase 4 · Verification  (inline)            │
-│  → .goal-suite/code-review.md                │
-│  Subagent review + final build / test / lint │
-└──────────────────────────────────────────────┘
-                       │
-                       ▼
-┌──────────────────────────────────────────────┐
-│  Phase 5 · Commit & Chain  (external)        │
+│  Phase 1 · Discovery   (Subagent · explore)  │
+│  → SPEC.md / STACK.md / BASELINE.md          │
+├──────────────────────────────────────────────┤
+│  Phase 2 · Research    (Subagent · extern)   │
+│  → RESEARCH.md          [gated · skippable]  │
+├──────────────────────────────────────────────┤
+│  Phase 3 · Planning    (writing-plans)       │
+│  → PLAN.md   (- [ ] + [severity] per task)   │
+├──────────────────────────────────────────────┤
+│  Phase 4 · Execution   (Fork-Agents)         │
+│  prefer-/fan-out-fork · iterative per task   │
+├──────────────────────────────────────────────┤
+│  Phase 5 · Verification (Subagent · review)  │
+│  two-stage review + verification-before-     │
+│  completion gate                             │
+├──────────────────────────────────────────────┤
+│  Phase 6 · Commit & Chain  (external)        │
 │  scripts/run-chain.sh                        │
-│  git commit + next severity                  │
 └──────────────────────────────────────────────┘
 ```
 
@@ -47,37 +34,68 @@ limitations that sabotage "naive use":
 
 1. **The evaluator has no tools** — it only reads the transcript.
    Conditions must be written so that shell output demonstrates them.
-2. **Vague conditions lead to drift or infinite loops.** A
-   verifiable end-state set is mandatory.
+2. **Vague conditions lead to drift or infinite loops.** A verifiable
+   end-state set is mandatory.
 
 `claude-goal-suite` solves both problems: it detects the stack
-automatically, generates the matching build/test/lint commands, writes a
-structured plan to disk (survivable between sessions), and delivers a
-4000-character-compliant goal block.
+automatically, generates the matching build/test/lint commands, writes
+a structured plan to disk (survivable between sessions), and delivers
+a goal block that stays under the 4000-character hard limit.
+
+## Actor model — at a glance
+
+Phases are split by *what kind of work* they do, not just by ordering:
+
+- **Subagent (read-only)** — Phase 1 Discovery (`explore`), Phase 2
+  Research (external), Phase 5 Verification (two-stage review). Fresh
+  context, no edits, returns a report.
+- **Fork-Agent (write/execution)** — Phase 4 Execution via
+  `prefer-fork-agents` / `fan-out-fork-agents` in isolated worktrees.
+  Inherits the full parent context.
+- **External** — Phase 6 Commit / chain. Always outside the goal, so
+  the rollback guarantee (clean tree on entry) is preserved.
 
 ## Prerequisites
 
-- **Claude Code v2.1.139+** (`/goal` is only available from this version)
-- **Superpowers** (`obra/superpowers-marketplace`) — for brainstorm/plan/TDD skills
-- **Claude-Full-Context-Agent** (`Kirchlive/Claude-Full-Context-Agent`) —
-  for fork-subagent mode with full context inheritance
+- **Claude Code v2.1.151+** — `/goal` is available, *and* the native
+  `/code-review` reuse/simplify behaviour Phase 5 relies on is stable
+- **Superpowers** (`obra/superpowers-marketplace`) — `writing-plans`
+  (Phase 3 format), `systematic-debugging` + `test-driven-development`
+  (Phase 4 bug tasks), `requesting-/receiving-code-review` +
+  `verification-before-completion` (Phase 5)
+- **Claude-Full-Context-Agent** (`Kirchlive/Claude-Full-Context-Agent`)
+  — `prefer-fork-agents` + `fan-out-fork-agents` for Phase 4
 - **Auto Mode** active (for unattended turns)
 - **Clean Git working tree** (rollback guarantee)
+- **Web tools available to the agent** when Phase 2 (Research) is in
+  scope — Research uses WebSearch/WebFetch; Phase 2 is skippable
 
-### How Phase 4 reviews work
+### How Phase 5 verification works
 
-Phase 4 (verification) does **not** call `/code-review` as a slash
-command. Instead, it spawns an explicit code-review subagent via the
-Task tool with a fixed prompt — review the diff since `BASELINE.md`
-for bug patterns, test-coverage regression, anti-patterns, secrets,
-and CLAUDE.md compliance. Output lands in `.goal-suite/code-review.md`.
+Phase 5 reviews the local working-tree diff since `BASELINE.md` —
+**no PR is required**. The primary engine is the native `/code-review`
+(low/medium effort for high-confidence findings, **without `--fix`**
+so the human review before commit stays meaningful). The goal block
+adds gates the native command does not cover: test-pass count vs
+`BASELINE.md`, and secret / anti-pattern greps — both as explicit
+shell steps, so the tool-less evaluator sees the output in the
+transcript.
 
-This makes the workflow safe to use alongside the official
-`code-review @ claude-plugins-official` marketplace plugin: there is no
-name collision, no idle-on-non-PR behaviour, and no dependency on
-which command happens to be registered under `/code-review` in your
-session. Keep the marketplace plugin installed for GitHub PR reviews
-if you use it — `claude-goal-suite` ignores it.
+The PR-oriented plugin `code-review @ claude-plugins-official` is
+deliberately not used here: it skips without an open PR and needs
+`gh`. It belongs in the real PR stage *after* Phase 6, where
+confidence scoring and git-blame history apply.
+
+> ⚠️ Verify before production use that a bare `/code-review` with the
+> plugin installed still resolves to the native command in your CC
+> version (namespacing). If shadowed: either drop the plugin from
+> the cleanup setup or fall back to the bespoke review subagent that
+> Phase 5 also supports.
+
+`verification-before-completion`'s Iron Law applies as the
+Completion Gate: no pass-claim without the verification command's
+fresh output — including a `grep -c -iE 'CRITICAL'
+.goal-suite/code-review.md` echo whose result must be 0.
 
 ## Install
 
@@ -97,21 +115,17 @@ if you use it — `claude-goal-suite` ignores it.
 /plugin install Claude-Full-Context-Agent@Claude-Full-Context-Agent
 ```
 
-**Activate Plugins:**
+**Activate plugins + fork-subagent mode (no restart yet):**
 
 ```
 /reload-plugins
-```
-
-**Setup:**
-
-
-```
 /Claude-Full-Context-Agent:doctor
 /auto-mode on
 ```
 
-Restart Claude Code.
+**Restart Claude Code once** (`CLAUDE_CODE_FORK_SUBAGENT=1` is read
+only at startup). One restart picks up both the plugin load and the
+env var.
 
 **Verify:**
 
@@ -119,9 +133,9 @@ Restart Claude Code.
 /goal-suite:preflight
 ```
 
-All checks should show `[ OK ]`. The preflight validates Claude Code
-version, git state, plugin installation, fork-subagent mode, and stack
-detection.
+All checks should show `[ OK ]`. The preflight validates the Claude
+Code version, git state, plugin installation, fork-subagent mode, and
+stack detection.
 
 > **Per-repo `.gitignore`:** Before the first run in a repo, add
 > `.claude/worktrees/` and `.goal-suite/` to its `.gitignore` (or run
@@ -155,41 +169,52 @@ bash scripts/run-chain.sh   # critical → high → medium → low
 | Argument | Effect |
 |---|---|
 | `stack=<id>` | Override stack auto-detection (e.g. `stack=python-uv`) |
-| `scope=<glob>` | Limit discovery to a subtree (e.g. `scope=src/auth/`) |
-| `severity=<level>` | Only process this severity (`critical`/`high`/`medium`/`low`) |
+| `scope=<glob>` | Restrict Discovery (Phase 1) **and** Planning (Phase 3) to a subtree (e.g. `scope=src/auth/`) |
+| `severity=<level>` | Planning (Phase 3) filters PLAN.md to that severity only (`critical`/`high`/`medium`/`low`) |
+| `--no-research` | Skip Phase 2 unconditionally. Default is auto: Phase 2 runs only when SPEC.md has ≥1 finding with `needs-research: true` |
 
 ## Expected artifacts
 
 ```
 .goal-suite/
-├── SPEC.md          # Discovery findings, categorized by severity
-├── STACK.md         # Detected stack + commands
-├── BASELINE.md      # Initial test/lint/build counts
-├── PLAN.md          # Task list with [ ]/[x]/[?] status
-└── code-review.md   # Phase 4 output
+├── STACK.md         # detected stack + commands (Phase 1)
+├── BASELINE.md      # initial test/lint/build counts (Phase 1)
+├── SPEC.md          # findings with needs-research flag (Phase 1)
+├── RESEARCH.md      # external ground-truth (Phase 2; optional)
+├── PLAN.md          # tasks · - [ ] [SEVERITY] T-N: … (Phase 3)
+└── code-review.md   # two-stage review output (Phase 5)
 ```
 
 ## Caveats
 
 1. **Bootstrap is a one-time manual step.** A `/goal` cannot trigger
    plugin install + restart for itself.
-2. **Discovery is expensive.** For repos >50k LoC: use the `scope=`
-   argument or chain runs.
+2. **Discovery (Phase 1) is expensive.** For repos >50k LoC: use the
+   `scope=` argument or chain runs.
 3. **Evaluator limitation.** Every verification must produce shell
    output in the transcript — don't just say "I ran the tests".
-4. **Phase 4 human review.** Inline `/code-review` is part of the goal,
-   but `git diff` by humans is *external and mandatory* before
+4. **Phase 5 human review.** Phase 5 produces `code-review.md`, but
+   `git diff` by humans is *external and mandatory* before
    `git commit`.
-5. **Phase 5 always external.** Goal chain via `run-chain.sh`, not
-   inside the goal.
+5. **Phase 6 is always external.** Goal chain via `run-chain.sh`, not
+   inside the goal — so the clean-working-tree rollback guarantee
+   stays intact.
+6. **Research (Phase 2) is informational.** Findings without a source
+   URL are low-confidence and must not drive destructive change.
 
 ## Integration with your own workflows
 
-- **Enable-Claude-Fork-Agent / fan-out-fork-agents**: When
-  `CLAUDE_CODE_FORK_SUBAGENT=1` is active, execution is automatically
-  parallelized for independent tasks
-- **Superpowers `subagent-driven-development`**: Used automatically for
-  parallelizable PLAN.md tasks
+- **Actor model:** subagents do read-only knowledge work
+  (`explore` = Discovery, external research = Research, two-stage
+  review = Verification). Execution runs through Fork-Agents
+  (`prefer-fork-agents` / `fan-out-fork-agents`) — write operations
+  in isolated worktrees.
+- **Superpowers** supplies the phase skills: `writing-plans`
+  (Planning), `systematic-debugging` + `test-driven-development`
+  (bug tasks in Execution), `requesting-/receiving-code-review` +
+  `verification-before-completion` (Verification). No
+  `brainstorming`, no parallel/worktree skills (overlap with the
+  fork stack).
 
 ## License
 

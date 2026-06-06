@@ -13,7 +13,8 @@ failed check with the specific repair action.
 ```bash
 claude --version
 ```
-Must be >= 2.1.139. If not:
+Must be >= 2.1.151 (native `/code-review` reuse/simplify stable for
+Phase 5). If not:
 ```
 curl -fsSL https://claude.ai/install.sh | bash
 ```

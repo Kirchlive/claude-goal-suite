@@ -43,11 +43,11 @@ CLAUDE_VERSION=$(claude --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | hea
 if [ -z "$CLAUDE_VERSION" ]; then
   warn "Could not parse Claude Code version — continuing, but verify manually"
 else
-  REQUIRED="2.1.139"
+  REQUIRED="2.1.151"
   if [ "$(printf '%s\n' "$REQUIRED" "$CLAUDE_VERSION" | sort -V | head -n1)" = "$REQUIRED" ]; then
     ok "Claude Code $CLAUDE_VERSION (>= $REQUIRED)"
   else
-    err "Claude Code $CLAUDE_VERSION is too old (>= $REQUIRED required)"
+    err "Claude Code $CLAUDE_VERSION is too old (>= $REQUIRED required for native /code-review reuse/simplify)"
     echo "  Update: curl -fsSL https://claude.ai/install.sh | bash"
     exit 1
   fi
@@ -128,19 +128,16 @@ echo "  # If this repo is local:"
 echo "  /plugin marketplace add $(pwd)"
 echo "  /plugin install claude-goal-suite@claude-goal-suite-marketplace"
 echo
-echo "  # ---- 4. Restart Claude Code ----"
-echo "  # Quit and restart Claude Code so the plugins load."
-echo
-echo "  # ---- 5. Enable fork-subagent mode ----"
+echo "  # ---- 4. Activate plugins + fork-subagent mode (no restart yet) ----"
+echo "  /reload-plugins"
 echo "  /Claude-Full-Context-Agent:doctor"
-echo
-echo "  # ---- 6. Restart Claude Code AGAIN ----"
-echo "  # CLAUDE_CODE_FORK_SUBAGENT is only read at startup."
-echo
-echo "  # ---- 7. Enable Auto Mode ----"
 echo "  /auto-mode on"
 echo
-echo "  # ---- 8. Verify ----"
+echo "  # ---- 5. Restart Claude Code (once) ----"
+echo "  # Picks up the plugin loads AND CLAUDE_CODE_FORK_SUBAGENT=1"
+echo "  # (env vars are only read at startup)."
+echo
+echo "  # ---- 6. Verify ----"
 echo "  /plugin list"
 echo "  # should show: superpowers, Claude-Full-Context-Agent, claude-goal-suite"
 echo

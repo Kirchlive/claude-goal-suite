@@ -1,71 +1,79 @@
-Run a complete repo-enhancement cycle: bugs, optimization, performance,
-cleanup. Flow is strictly phased.
+Run a complete repo-enhancement cycle. Strictly phased. All outputs to
+.goal-suite/. Apply karpathy-guidelines (no speculation; surgical).
 
-PHASE 1 - DISCOVERY (output: .goal-suite/SPEC.md):
-1. Stack detection: scan the root for markers (package.json, Cargo.toml,
-   pyproject.toml, go.mod, pom.xml, build.gradle*, Gemfile, composer.json,
-   *.csproj, mix.exs, Makefile). Consult references/stacks.md in the skill.
-   Write stack + BUILD/TEST/LINT/FORMAT commands to .goal-suite/STACK.md.
-   If .goal-suite/stack-override.txt exists: its value takes precedence.
-2. Baseline: run BUILD, TEST, LINT, FORMAT. Record exit codes,
-   pass/fail counts, warning counts in .goal-suite/BASELINE.md. Output must
-   land visibly in the transcript so the evaluator can read it.
-3. Issue inventory: grep -rn "TODO\|FIXME\|HACK\|XXX\|DEPRECATED" over
-   the source tree (excluding node_modules/target/dist/.venv/vendor/build).
-   If the gh CLI is available: gh issue list --state open --limit 50.
-4. Dead-code scan, stack-appropriate (knip / cargo-udeps / ruff F401 /
-   staticcheck / phpstan unused / etc.). Tool missing: TODO in SPEC.
-5. Perf hotspots: grep for anti-patterns (sync-in-async, await-in-loop,
-   N+1, panic/unwrap in Rust, blocking calls in event-loop contexts).
-6. Write .goal-suite/SPEC.md with sections: Stack, Commands, Baseline,
-   Bugs, Lint, Dead-Code, Performance, Deprecated. Each finding with
-   file:line and severity (CRITICAL/HIGH/MEDIUM/LOW).
+PHASE 1 - DISCOVERY (Subagent: explore):
+1. Stack: per references/stacks.md -> STACK.md (BUILD/TEST/LINT/
+   FORMAT). stack-override.txt wins.
+2. Baseline: BUILD/TEST/LINT/FORMAT exit codes + counts -> BASELINE.md.
+   Output MUST hit the transcript.
+3. Issues: grep -rn TODO|FIXME|HACK|XXX|DEPRECATED (excl. node_modules
+   /target/dist/.venv/vendor/build). gh issue list if gh.
+4. Dead-code stack-appropriate (knip / cargo-udeps / ruff F401 /
+   staticcheck / phpstan). Tool missing -> note in SPEC.
+5. Perf anti-patterns (sync-in-async, await-in-loop, N+1, panic/
+   unwrap, blocking-in-event-loop).
+6. SPEC.md sections: Stack, Commands, Baseline, Bugs, Lint, Dead-Code,
+   Performance, Deprecated. Each finding: file:line + severity
+   (CRITICAL/HIGH/MEDIUM/LOW) + needs-research: true|false.
 
-PHASE 2 - PLANNING (output: .goal-suite/PLAN.md):
-7. From SPEC.md, generate a numbered task list, 2-5 minutes per task.
-   Order: CRITICAL bugs > HIGH bugs > Lint > Dead-Code > MEDIUM
-   Performance > Format. Every task has: ID, description, file(s),
-   local verify command, [ ] checkbox.
+PHASE 2 - RESEARCH (Subagent: external, gated):
+7. Skip if --no-research OR no SPEC finding has needs-research:true.
+   HARD cap 5 lookups. Source-mandatory. Scope: (a) direct deps vs
+   CVE/EOL/major-version-lag, (b) Deprecated-block replacements vs
+   current docs, (c) idiom check for flagged anti-patterns. Output ->
+   RESEARCH.md (per finding: source URL, confidence, recommendation).
+   Research INFORMS the plan; never acts.
 
-PHASE 3 - EXECUTION (iterative per task):
-8. Read the next open task from PLAN.md.
-9. Implement the change.
-10. Run the local verify command; output must land in the transcript.
-11. On pass: mark [x] in PLAN.md AND emit the [x]/[ ] count in the
-    output (e.g. via grep -c). On fail: up to 3 correction attempts,
-    then [?] with justification. Continue with the next task.
-12. Repeat until all tasks are [x] or [?].
+PHASE 3 - PLANNING (Superpowers: writing-plans):
+8. From SPEC.md + RESEARCH.md, emit writing-plans-conform tasks to
+   PLAN.md. Mandatory line:
+   - [ ] [SEVERITY] T-N: desc (file:line) -- verify: <cmd>
+   2-5 min/task. Order: CRITICAL > HIGH > Lint > Dead-Code > MEDIUM
+   perf > Format. NO auto-commits; Phase 6 is external.
+   severity=<level> -> filter PLAN. scope=<glob> -> restrict tasks.
 
-PHASE 4 - VERIFICATION (inline):
-13. Spawn a code-review subagent (Task tool, fresh context, isolation:
-    worktree if available). Task: review the diff since BASELINE.md for
-    (a) CLAUDE.md compliance if the file is present,
-    (b) bug patterns (off-by-one, null-deref, race, panic/unwrap),
-    (c) test coverage regression vs. baseline, (d) anti-patterns
-    (sync-in-async, await-in-loop, blocking-in-event-loop), (e) secrets
-    or hard-coded URLs. Output to .goal-suite/code-review.md with
-    severity (CRITICAL/HIGH/MEDIUM/LOW) and file:line.
-14. Address CRITICAL via mini-tasks in PLAN.md; non-CRITICAL as
-    [?] follow-up entries.
-15. Final run: BUILD, TEST, LINT, FORMAT. Output to the transcript.
+PHASE 4 - EXECUTION (Fork-Agents: prefer-/fan-out-fork-agents):
+9. Iterate open [ ]. Bug-tasks: systematic-debugging + TDD (failing
+   test FIRST). Other: minimal surgical change. Independent parallel
+   tasks: fan-out forks with isolation: worktree (soft cap 6). No
+   fork recursion.
+10. Run task-local verify; output to transcript.
+11. Pass: [x] + emit [x]/[ ]/[?] counts via grep -c. Fail: up to 3
+    attempts, then [?] with the open question. Continue.
+12. Repeat until all [x] or [?].
 
-GOAL IS COMPLETE WHEN ALL OF:
-- .goal-suite/SPEC.md and .goal-suite/PLAN.md exist and are populated
-- All PLAN tasks are [x] or [?] (with justification)
-- BUILD command exits 0
-- TEST command exits 0 AND test-pass-count >= baseline
-- LINT command exits 0 OR warning-count <= baseline
-- FORMAT check exits 0
-- .goal-suite/code-review.md shows no open CRITICAL findings
+PHASE 5 - VERIFICATION (Subagent: review, two-stage):
+13. Two-stage review of diff since BASELINE.md:
+    A (spec): every PLAN task delivered? regression vs BASELINE?
+    B (quality): CLAUDE.md compliance if present; bug patterns
+    (off-by-one, null-deref, race, panic/unwrap); test coverage vs
+    baseline; anti-patterns; secrets / hard-coded URLs.
+    Output -> code-review.md with severity + file:line.
+14. CRITICAL -> mini-tasks in PLAN.md; non-CRITICAL -> [?] follow-ups.
+15. Final BUILD/TEST/LINT/FORMAT in transcript. Then echo CRITICAL
+    count: grep -ciE 'CRITICAL' .goal-suite/code-review.md -- MUST be
+    0. Apply verification-before-completion: no pass-claim without
+    the command's fresh output in THIS message.
 
-SCOPE CONSTRAINTS (HARD, no exceptions):
-- Do not delete, skip, or .skip/.only tests
-- test-pass-count must not fall below baseline
-- No suppressions (eslint-disable, # noqa, #[allow()], @SuppressWarnings)
-  without an inline comment with justification
+PHASE 6 - COMMIT (external): scripts/run-chain.sh or human commit.
+Never inside the goal.
+
+GOAL COMPLETE WHEN ALL OF:
+- SPEC.md, PLAN.md populated
+- RESEARCH.md exists OR research skipped per rule
+- All PLAN tasks [x] or [?] (with justification)
+- BUILD 0; TEST 0 AND pass-count >= baseline; LINT 0 OR warning-count
+  <= baseline; FORMAT 0
+- code-review.md CRITICAL count == 0 (echoed via grep -c)
+
+SCOPE CONSTRAINTS (HARD):
+- No test deletion / .skip / .only; pass-count never < baseline
+- No suppressions without inline justification
 - No changes to: .env*, .github/, ci/, deploy/, infra/, terraform/,
-  Dockerfile*, migrations/, package.json/Cargo.toml/etc. major bumps
-- Pure-refactor tasks: business logic unchanged
-- On ambiguity: mark as [?] in PLAN.md with the question, do NOT guess
+  Dockerfile*, migrations/, package.json/Cargo.toml major bumps
+- Pure-refactor: business logic unchanged
+- Ambiguity -> [?] with the question; do NOT guess
+- Research findings without source URL: low-confidence; no destructive
+  use
 
-STOP after 40 turns with a report of the remaining work.
+STOP after 40 turns with a report.

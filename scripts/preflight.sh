@@ -20,10 +20,10 @@ FAILED=0
 # 1. Claude Code version
 if command -v claude >/dev/null 2>&1; then
   CV=$(claude --version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-  if [ -n "$CV" ] && [ "$(printf '%s\n' "2.1.139" "$CV" | sort -V | head -1)" = "2.1.139" ]; then
-    ok "Claude Code $CV (>= 2.1.139)"
+  if [ -n "$CV" ] && [ "$(printf '%s\n' "2.1.151" "$CV" | sort -V | head -1)" = "2.1.151" ]; then
+    ok "Claude Code $CV (>= 2.1.151)"
   else
-    fail "Claude Code version $CV is too old (>= 2.1.139 required)"
+    fail "Claude Code version $CV is too old (>= 2.1.151 required for native /code-review reuse/simplify in Phase 5)"
   fi
 else
   fail "claude CLI not found"
@@ -97,6 +97,16 @@ for tool in jq rg fd gh; do
     warn "$tool not available (optional, speeds up discovery)"
   fi
 done
+
+# 8. Phase 2 (Research) capability
+echo
+echo "--- Research (Phase 2) capability ---"
+if command -v curl >/dev/null 2>&1; then
+  ok "curl available (fallback web fetch)"
+else
+  warn "curl missing (Phase 2 uses WebSearch/WebFetch tools when granted; curl is only a CLI fallback)"
+fi
+echo "(Phase 2 is gated: runs only when SPEC.md has needs-research:true findings. Pass --no-research to skip unconditionally.)"
 
 # Summary
 echo

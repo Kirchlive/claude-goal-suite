@@ -1,12 +1,13 @@
 # Installation: claude-goal-suite
 
-Complete step-by-step guide. Estimated duration: ~10 minutes,
-of which ~3 minutes is wait time (plugin installs + 2x restart).
+Complete step-by-step guide. Estimated duration: ~8 minutes,
+of which ~2 minutes is wait time (plugin installs + 1 restart).
 
 ## Prerequisites (check before starting)
 
 ```bash
-# Claude Code must be >= 2.1.139
+# Claude Code must be >= 2.1.151 (native /code-review reuse/simplify
+# stable — required by Phase 5)
 claude --version
 
 # If too old:
@@ -72,36 +73,27 @@ Variant B — if you push it to GitHub (e.g. `Kirchlive/claude-goal-suite`):
 /plugin install claude-goal-suite@claude-goal-suite-marketplace
 ```
 
-## Step 4: First restart
+## Step 4: Activate plugins + fork-subagent mode
 
-Fully quit Claude Code and start it again. Plugins are loaded at
-startup.
+In Claude Code, no restart yet:
 
-## Step 5: Enable fork-subagent mode
-
-After restart, in Claude Code:
 ```
+/reload-plugins
 /Claude-Full-Context-Agent:doctor
+/auto-mode on
 ```
 
 The doctor command sets `CLAUDE_CODE_FORK_SUBAGENT=1` in
 `~/.claude/settings.json`. Expected: "Set CLAUDE_CODE_FORK_SUBAGENT=1 in
 settings.json"
 
-## Step 6: Second restart
+## Step 5: Restart Claude Code
 
-Quit Claude Code again and restart — environment variables are read
-ONLY at startup, not at runtime.
+Fully quit Claude Code and start it again — environment variables are
+read ONLY at startup, not at runtime, and the restart picks up both the
+plugin loads and the `CLAUDE_CODE_FORK_SUBAGENT` value in one go.
 
-## Step 7: Enable Auto Mode
-
-```
-/auto-mode on
-```
-
-(Alternatively via the UI settings panel)
-
-## Step 8: Verification
+## Step 6: Verification
 
 ```
 /plugin list
@@ -111,7 +103,7 @@ Expected:
 ```
 - superpowers v...
 - Claude-Full-Context-Agent v...
-- claude-goal-suite v0.1.0
+- claude-goal-suite v0.2.0
 ```
 
 ```
@@ -123,7 +115,7 @@ grep CLAUDE_CODE_FORK_SUBAGENT ~/.claude/settings.json
 ```
 Expected: `"CLAUDE_CODE_FORK_SUBAGENT": "1"`
 
-## Step 9: Per-repo setup
+## Step 7: Per-repo setup
 
 In every repo where you want to use `claude-goal-suite`:
 
@@ -140,7 +132,7 @@ or directly in Claude Code:
 /goal-suite:preflight
 ```
 
-## Step 10: First test run
+## Step 8: First test run
 
 In a small test repo:
 
@@ -175,7 +167,7 @@ git commit -m "goal-suite: first repo cleanup pass"
 
 ### "/goal: unknown command"
 Claude Code version too old. `curl -fsSL https://claude.ai/install.sh | bash`
-and check with `claude --version` whether it is >= 2.1.139.
+and check with `claude --version` whether it is >= 2.1.151.
 
 ### "Plugin install failed"
 The marketplace must be registered BEFOREHAND with `/plugin marketplace
@@ -202,13 +194,15 @@ Repo too big for a single goal. Use:
 - `scripts/run-chain.sh` for severity splits
 
 ### "/code-review not available" or "Understood — I'll wait..."
-This does not affect `claude-goal-suite`. From v0.1.1, Phase 4 spawns
-an explicit code-review subagent via the Task tool and never calls
+This does not affect `claude-goal-suite`. From v0.1.1 onwards, the
+verification stage (Phase 5 in the current 6-phase flow) spawns an
+explicit review subagent via the Task tool and never calls
 `/code-review` as a slash command — so the marketplace plugin
 `code-review @ claude-plugins-official` cannot block it. If you see
 the message above, you invoked `/code-review` outside of
 `claude-goal-suite`; that is a separate issue between the bundled
-skill and the marketplace plugin and does not change Phase 4 behaviour.
+skill and the marketplace plugin and does not change Phase 5
+behaviour.
 
 ## Uninstall
 

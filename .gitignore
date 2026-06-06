@@ -12,3 +12,6 @@ Thumbs.db
 
 # Test-Outputs
 .goal-suite/
+
+# Local working docs (not for distribution)
+claude-goal-suite-Optimierungsplan.md
