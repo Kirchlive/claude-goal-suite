@@ -1,6 +1,6 @@
 # claude-goal-suite
 
-**Self-contained repo-enhancement cycle for Claude Code via `/goal`.**
+**Self-contained repo-enhancement cycle via native Claude Code command `/goal`.**
 Bug fixing, optimization, performance, cleanup — stack-agnostic via
 auto-detection (Node/Rust/Python/Go/Java/.NET/Ruby/PHP/Elixir/Swift/Make).
 
