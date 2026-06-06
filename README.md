@@ -44,7 +44,8 @@ a goal block that stays under the 4000-character hard limit.
 
 `/goal-suite` without description: Full autonomous enhancement cycle - 
 bug-fix, optimization, performance improvements, and code cleanup. 
-The order of implementation is based on relevance.
+The order of implementation is based on relevance and follow full 
+phase order.
 
 ## Prerequisites
 
