@@ -34,7 +34,7 @@ limitations that sabotage "naive use":
 
 1. **The evaluator has no tools** — it only reads the transcript.
    Conditions must be written so that shell output demonstrates them.
-2. **Vague conditions lead to drift or infinite loops.** A verifiable
+2. **Vague conditions lead to drift.** A verifiable
    end-state set is mandatory.
 
 `claude-goal-suite` solves both problems: it detects the stack
